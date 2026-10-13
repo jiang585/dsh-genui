@@ -1,38 +1,86 @@
-# ── 通用 ────────────────────────────────────────────────────────────────
+# Dependencies and operating-system files
 node_modules/
 *.log
 .DS_Store
 Thumbs.db
 *.tmp
 
-# ── 回归脚本的运行态与一次性产物 ────────────────────────────────────────
-# Edge 的 --user-data-dir（browser-regression / outer-scroll-regression /
-# sales-browser-regression 共用），里面是浏览器缓存与 profile 数据，体积很大
+# Browser and runtime test artifacts
 tools/edge-regression-profile/
-
-# GENUI_STATE_FILE 指向的临时状态快照（regression.mjs 与浏览器回归各用一个）
 tools/test-state.json
 tools/browser-test-state.json
-
-# 无头验证的进度文件与探针产物
+tools/*-results.json
 tools/verification-progress.json
+tools/encoding-repair-results.json
 tools/selftest-url.txt
 tools/selftest-dom.html
+tools/*.png
+tools/verify-profile/
 
-# 一次性 profile 编码修复记录（repair-profile-encoding.mjs）
-tools/encoding-repair-results.json
-
-# 回归结果摘要：脚本只把 JSON 打到 stdout，下面三个文件是留存的验收证据，
-# 所以先按通配忽略，再显式放行这三个（别把有用的回归基线一起忽略掉）
-tools/*-results.json
-!tools/browser-regression-results.json
-!tools/outer-scroll-results.json
-!tools/sales-browser-results.json
-
-# ── 明确保留，不要加进忽略规则 ──────────────────────────────────────────
-# tools/*.png                          README 与验收记录引用的截图
-# tools/session-*-evidence.json        真实会话原始证据
-# tools/file-read-*.json               真实会话验收证据
-# tools/profile-native-validation.json 宿主配置解析证据
-# vendor/THIRD-PARTY.md                第三方代码来源与再分发要求
-# vendor/LICENSE-intelligent-ui-demo   上游 MIT 许可原文
+# Personal notes, session evidence and one-off local scripts
+# Kept on disk; excluded from the public repository.
+/tools/apply-live-override.mjs
+/tools/apply-output-gate.mjs
+/tools/browser-e2e.mjs
+/tools/browser-regression-results.json
+/tools/build-review-bundle.mjs
+/tools/bundle-probe.mjs
+/tools/cdp-e2e.mjs
+/tools/check-expansion-served.mjs
+/tools/check-file-read-evidence.mjs
+/tools/check-live-bundle.mjs
+/tools/cleanup-probes.mjs
+/tools/debug-profile-patch.mjs
+/tools/dsh-contracts.md
+/tools/dump-session.mjs
+/tools/encoding-diff-paths.json
+/tools/encoding-rows.mjs
+/tools/evidence.md
+/tools/file-read-capabilities.json
+/tools/file-read-verification.json
+/tools/find-toolfilter-type.mjs
+/tools/genui-outer-scroll-preview.png
+/tools/genui-preview.png
+/tools/inspect-profile-encoding.mjs
+/tools/inspect-session-stream.mjs
+/tools/make-card-component-probe.mjs
+/tools/make-card-probe.mjs
+/tools/make-client-probe.mjs
+/tools/make-live-variant.mjs
+/tools/make-selftest-url.mjs
+/tools/make-variant.mjs
+/tools/outer-scroll-results.json
+/tools/output-gate-check.mjs
+/tools/patch-frame-b64url.mjs
+/tools/patch-frame-boot.mjs
+/tools/patch-frame-dbg.mjs
+/tools/patch-frame-debug.mjs
+/tools/patch-frame-errors.mjs
+/tools/patch-frame-resources.mjs
+/tools/patch-vendor.mjs
+/tools/patch2.mjs
+/tools/print-profile-tail.mjs
+/tools/profile-native-validation.json
+/tools/real-sales-preview.png
+/tools/rename-package-refs.mjs
+/tools/repair-profile-encoding.mjs
+/tools/repoint-local-profile.mjs
+/tools/reprefix.mjs
+/tools/review-index.md
+/tools/sales-browser-results.json
+/tools/session-0-evidence.json
+/tools/session-1-evidence.json
+/tools/session-2-evidence.json
+/tools/session-3-evidence.json
+/tools/set-default-preset.mjs
+/tools/sync-live-copy.mjs
+/tools/sync-live2-read.mjs
+/tools/validate-native-profile.mjs
+/tools/validate-profile-patch.mjs
+/tools/verify-launch.mjs
+/tools/verify-real-sessions.mjs
+/修复验收记录.md
+/前端修改边界-给Agent.md
+/外层工具区域展开修复.md
+/文件读取真实会话验收.md
+/配置中文乱码修复.md

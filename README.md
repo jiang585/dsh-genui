@@ -66,7 +66,7 @@ DSH GenUI 为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness
 - 截图由无头 Edge 加载真实编译器、iframe、Worker 和渲染器后直接截取；没有操作用户 GUI。
 - 汇总数字与控件状态回传经过断言检查；截图不代表已在所有 DSH 版本或模型上验证。
 - 可运行 [`capture-readme-screenshots.mjs`](tools/capture-readme-screenshots.mjs) 重现图片；详见[开发说明](docs/架构与开发.md#生成文档截图)。
-- 真实会话记录与测试边界见[文件读取验收](文件读取真实会话验收.md)。其中的 `genui-live2` 是本地验证副本，本仓库对外安装的模式 ID 为 `genui`。
+- 真实会话验证使用本地测试副本；本仓库对外安装的模式 ID 为 `genui`。个人会话日志和本机配置不随仓库发布。
 
 </details>
 
@@ -126,7 +126,15 @@ dsh plugin --profile desktop add https://github.com/jiang585/dsh-genui
 | `grep` | 搜索文件内容，定位后可继续 `read` 获取上下文 |
 | `read_image` | PNG、JPEG、WebP、GIF；需附件服务与图片输入模型支持 |
 
-**本模式没有 PDF、Word、Excel 的专用解析器。** 搜索命中或文件存在不代表已解析内容；文本被截断时也不应宣称完整读取。
+**目前不支持直接解析 PDF、Word、Excel。** 本模式装配的是文本与图片读取工具，没有文档提取、OCR 或工作簿解析工具。
+
+| 文件格式 | 当前可用方式 |
+|---|---|
+| PDF（`.pdf`） | 先在模式外提取为 UTF-8 文本；扫描件需要先做 OCR |
+| Word（`.doc` / `.docx`） | 先在模式外导出为 UTF-8 文本或 Markdown |
+| Excel（`.xls` / `.xlsx`） | 先在模式外将需要的工作表导出为 UTF-8 CSV；单个 CSV 不保留多工作表、公式和样式 |
+
+转换后的文本或 CSV 可以通过 `read` 读取，再生成界面。`glob` 找到文件、`grep` 搜索命中或 `read` 返回部分字节，都不代表已解析这些文档；文本被截断时也不应宣称完整读取。
 
 ## 工作原理
 
@@ -218,10 +226,10 @@ node tools/outer-scroll-regression.mjs
 | 文档 | 内容 |
 |---|---|
 | [架构与开发说明](docs/架构与开发.md) | 目录、接口、状态与资源预算、截图生成 |
-| [前端修改边界](前端修改边界-给Agent.md) | 可调整的视觉层及需要保留的协议行为 |
-| [文件读取真实会话验收](文件读取真实会话验收.md) | 四个真实模型会话的验证结果与限制 |
-| [外层工具区域展开修复](外层工具区域展开修复.md) | 外层高度限制的定位与回归 |
-| [修复验收记录](修复验收记录.md) | 既有功能的验收范围 |
+| [只读工具契约测试](tools/readonly-test.mjs) | 模式识别、写入屏蔽与执行保护 |
+| [外层工具组回归](tools/outer-scroll-regression.mjs) | GenUI 完整展开及普通工具的滚动行为 |
+| [参考资料](docs/参考资料.md) | 外部来源与实现依据 |
+| [第三方代码声明](vendor/THIRD-PARTY.md) | 上游代码、改动与许可要求 |
 
 欢迎通过 [Issues](https://github.com/jiang585/dsh-genui/issues) 报告问题或提交改进。请附上 DSH 版本、模型/中转、复现步骤，以及经过脱敏的错误或截图。
 
