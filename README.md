@@ -6,7 +6,7 @@
 
 DeepSeek Harness 的智能界面模式插件 · 读取真实文件 · 交互状态回环
 
-[![Version](https://img.shields.io/badge/version-1.0.0-2563eb)](package.json)
+[![Version](https://img.shields.io/badge/version-1.0.1-2563eb)](package.json)
 [![DSH](https://img.shields.io/badge/DSH-%E2%89%A5%200.1.7--rc.2-0f766e)](package.json)
 [![Node](https://img.shields.io/badge/Node.js-%E2%89%A5%2020-43853d)](package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -96,6 +96,8 @@ dsh plugin --profile desktop add https://github.com/jiang585/dsh-genui
 ```
 
 将 `desktop` 换成你的 profile 名称。安装通过 DSH 插件管理器完成，包名 `dsh-genui` 会加入该 profile 的 bundle 清单。
+
+插件使用现有 DSH 宿主，DSH peer 声明为 optional，以避免 pnpm 自动下载另一套宿主及其构建依赖；宿主版本要求仍由 `dsh.engines.dsh` 和 peer 的版本范围声明。
 
 ### 3. 启用模式
 

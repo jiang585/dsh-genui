@@ -51,6 +51,7 @@ check(manifest.dsh?.client?.platform === 'web', 'dsh.client.platform is web')
 check(Array.isArray(manifest.dsh?.client?.inject), 'dsh.client.inject declared')
 check(typeof manifest.dsh?.engines?.dsh === 'string', 'dsh.engines.dsh declared', manifest.dsh?.engines?.dsh)
 check(typeof manifest.peerDependencies?.['@deepseek-ai/dsh'] === 'string', 'peerDependencies["@deepseek-ai/dsh"] declared', manifest.peerDependencies?.['@deepseek-ai/dsh'])
+check(manifest.peerDependenciesMeta?.['@deepseek-ai/dsh']?.optional === true, 'DSH peer is optional to avoid installing another host and its build dependencies')
 check(!manifest.scripts || (!manifest.scripts.prepare && !manifest.scripts.postinstall), 'no install-time build hooks (pnpm would need an allowBuilds entry)')
 
 for (const subpath of ['.', './client', './plugins/*']) {
