@@ -1,0 +1,63 @@
+{
+  "name": "dsh-genui",
+  "version": "1.0.0",
+  "description": "DSH 智能界面模式（Intelligent UI / DIL）：模型不描述界面，而是直接写 DIL 文档，客户端实时编译并在沙箱 iframe 里渲染成可交互界面，交互状态以 keyed state 回环进下一轮提示词。支持只读文件面（read / read_image / glob / grep）。",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "genui",
+    "intelligent-ui",
+    "dil",
+    "agent-preset",
+    "sandbox"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "jiang585",
+    "url": "https://github.com/jiang585"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jiang585/dsh-genui.git"
+  },
+  "homepage": "https://github.com/jiang585/dsh-genui#readme",
+  "bugs": {
+    "url": "https://github.com/jiang585/dsh-genui/issues"
+  },
+  "type": "module",
+  "main": "lib/host.js",
+  "exports": {
+    ".": "./lib/host.js",
+    "./client": "./lib/client.js",
+    "./plugins/*": "./plugins/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "plugins",
+    "vendor",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": ">=0.1.7-rc.2"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.1.7-rc.2"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [],
+      "platform": "web"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "restored": true,
+  "interaction": true,
+  "high": 9052,
+  "short": 120,
+  "latest": true,
+  "quarantined": true,
+  "report": {
+    "heights": [
+      120,
+      266,
+      266,
+      266,
+      9052,
+      9052,
+      9052,
+      120,
+      120,
+      120
+    ],
+    "errors": [],
+    "renders": 6,
+    "text": "Newest source"
+  }
+}

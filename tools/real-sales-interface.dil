@@ -1,0 +1,105 @@
+{@body const DATA = [{region:"华东",q:"2026Q1",revenue:128400,cost:76200,orders:1840},{region:"华北",q:"2026Q1",revenue:98450,cost:61300,orders:1320},{region:"华南",q:"2026Q1",revenue:152300,cost:88900,orders:2115},{region:"西南",q:"2026Q1",revenue:61200,cost:42800,orders:760},{region:"东北",q:"2026Q1",revenue:43750,cost:33100,orders:540},{region:"华东",q:"2026Q2",revenue:141200,cost:80100,orders:1975},{region:"华北",q:"2026Q2",revenue:105900,cost:64200,orders:1408},{region:"华南",q:"2026Q2",revenue:168750,cost:94100,orders:2280},{region:"西南",q:"2026Q2",revenue:68400,cost:45900,orders:845},{region:"东北",q:"2026Q2",revenue:48200,cost:35700,orders:596}]}
+{@body const [metric,setMetric] = DIL.useState("revenue")}
+{@body const [view,setView] = DIL.useState("region")}
+{@body const pct = (r,c) => r===0?0:((r-c)/r*100)}
+{@body const fmt = n => n.toLocaleString("en-US")}
+{@body const REGIONS = ["华东","华北","华南","西南","东北"]}
+{@body const QUARTERS = ["2026Q1","2026Q2"]}
+{@body const byRegion = REGIONS.map(r=>{const q1=DATA.find(d=>d.region===r&&d.q==="2026Q1");const q2=DATA.find(d=>d.region===r&&d.q==="2026Q2");return {name:r,q1:q1.revenue,q2:q2.revenue,c1:q1.cost,c2:q2.cost,m1:pct(q1.revenue,q1.cost),m2:pct(q2.revenue,q2.cost),g1:q1.revenue-q1.cost,g2:q2.revenue-q2.cost}})}
+{@body const tot = DATA.reduce((a,d)=>({revenue:a.revenue+d.revenue,cost:a.cost+d.cost,orders:a.orders+d.orders}),{revenue:0,cost:0,orders:0})}
+{@body const gross = tot.revenue-tot.cost}
+{@body const gm = pct(tot.revenue,tot.cost)}
+{@body const qt = QUARTERS.map(q=>{const rows=DATA.filter(d=>d.q===q);const rev=rows.reduce((a,d)=>a+d.revenue,0);const cst=rows.reduce((a,d)=>a+d.cost,0);return {name:q,revenue:rev,cost:cst,gross:rev-cst,gm:pct(rev,cst)}})}
+{@body const chartRows = byRegion.map(r=>({name:r.name,q1v:metric==="revenue"?r.q1:r.c1,q2v:metric==="revenue"?r.q2:r.c2}))}
+{@body const marginRows = byRegion.map(r=>({name:r.name,m1:+r.m1.toFixed(1),m2:+r.m2.toFixed(1)}))}
+{@body const metricLabel = metric==="revenue"?"收入":"成本"}
+<box gap={4}>
+  <row justify="between" align="center" wrap>
+    <title size="lg">2026 上半年区域经营概览</title>
+    <badge color="info">sales-2026.csv · 10 行</badge>
+  </row>
+
+  <grid columns={3}>
+    <grid-item><card>
+      <caption>总收入</caption>
+      <title size="xl" tabularNums>¥{fmt(tot.revenue)}</title>
+    </card></grid-item>
+    <grid-item><card>
+      <caption>总成本</caption>
+      <title size="xl" tabularNums>¥{fmt(tot.cost)}</title>
+    </card></grid-item>
+    <grid-item><card>
+      <caption>毛利 / 毛利率</caption>
+      <title size="xl" tabularNums>¥{fmt(gross)}</title>
+      <text color="success" tabularNums>{gm.toFixed(1)}%</text>
+    </card></grid-item>
+  </grid>
+
+  <row gap={3} align="center" wrap>
+    <segmented-control value={metric} onChange={setMetric} options={[{label:"收入",value:"revenue"},{label:"成本",value:"cost"}]}/>
+    <segmented-control value={view} onChange={setView} options={[{label:"按区域",value:"region"},{label:"按季度汇总",value:"quarter"}]}/>
+  </row>
+
+  {#if view==="region"}
+    <Chart content={ {"chartType":"bar","xKey":"name","series":[{"dataKey":"q1v","label":"2026Q1 "+metricLabel,"valuePrefix":"¥"},{"dataKey":"q2v","label":"2026Q2 "+metricLabel,"valuePrefix":"¥"}],"data":chartRows} }/>
+  {:else}
+    <table>
+      <table-row header>
+        <table-cell>季度</table-cell>
+        <table-cell align="end">收入</table-cell>
+        <table-cell align="end">成本</table-cell>
+        <table-cell align="end">毛利</table-cell>
+        <table-cell align="end">毛利率</table-cell>
+      </table-row>
+      {#each qt as q}
+        <table-row>
+          <table-cell>{q.name}</table-cell>
+          <table-cell align="end" tabularNums>¥{fmt(q.revenue)}</table-cell>
+          <table-cell align="end" tabularNums>¥{fmt(q.cost)}</table-cell>
+          <table-cell align="end" tabularNums>¥{fmt(q.gross)}</table-cell>
+          <table-cell align="end" tabularNums>{q.gm.toFixed(1)}%</table-cell>
+        </table-row>
+      {/each}
+      <table-row>
+        <table-cell><bold>合计</bold></table-cell>
+        <table-cell align="end" tabularNums>¥{fmt(tot.revenue)}</table-cell>
+        <table-cell align="end" tabularNums>¥{fmt(tot.cost)}</table-cell>
+        <table-cell align="end" tabularNums>¥{fmt(gross)}</table-cell>
+        <table-cell align="end" tabularNums>{gm.toFixed(1)}%</table-cell>
+      </table-row>
+    </table>
+  {/if}
+
+  <divider/>
+
+  <label>各区域明细</label>
+  <table>
+    <table-row header>
+      <table-cell>区域</table-cell>
+      <table-cell align="end">Q1 收入</table-cell>
+      <table-cell align="end">Q1 成本</table-cell>
+      <table-cell align="end">Q1 毛利率</table-cell>
+      <table-cell align="end">Q2 收入</table-cell>
+      <table-cell align="end">Q2 成本</table-cell>
+      <table-cell align="end">Q2 毛利率</table-cell>
+      <table-cell align="end">毛利率变动</table-cell>
+    </table-row>
+    {#each byRegion as r}
+      <table-row>
+        <table-cell><bold>{r.name}</bold></table-cell>
+        <table-cell align="end" tabularNums>¥{fmt(r.q1)}</table-cell>
+        <table-cell align="end" tabularNums>¥{fmt(r.c1)}</table-cell>
+        <table-cell align="end" tabularNums>{r.m1.toFixed(1)}%</table-cell>
+        <table-cell align="end" tabularNums>¥{fmt(r.q2)}</table-cell>
+        <table-cell align="end" tabularNums>¥{fmt(r.c2)}</table-cell>
+        <table-cell align="end" tabularNums>{r.m2.toFixed(1)}%</table-cell>
+        <table-cell align="end" tabularNums color={r.m2-r.m1>=0?"success":"danger"}>{(r.m2-r.m1>=0?"+":"")+(r.m2-r.m1).toFixed(1)}pp</table-cell>
+      </table-row>
+    {/each}
+  </table>
+
+  <label>毛利率对比（%）</label>
+  <Chart content={ {"chartType":"line","xKey":"name","series":[{"dataKey":"m1","label":"2026Q1 毛利率","valueSuffix":"%"},{"dataKey":"m2","label":"2026Q2 毛利率","valueSuffix":"%"}],"data":marginRows} }/>
+
+  <text color="secondary" size="sm">口径：毛利率 = (收入 − 成本) / 收入；总毛利率按合计口径计算，非各区域简单平均。两季度合计订单 {fmt(tot.orders)} 单。</text>
+</box>

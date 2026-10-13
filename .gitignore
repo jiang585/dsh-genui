@@ -1,0 +1,38 @@
+# ── 通用 ────────────────────────────────────────────────────────────────
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+*.tmp
+
+# ── 回归脚本的运行态与一次性产物 ────────────────────────────────────────
+# Edge 的 --user-data-dir（browser-regression / outer-scroll-regression /
+# sales-browser-regression 共用），里面是浏览器缓存与 profile 数据，体积很大
+tools/edge-regression-profile/
+
+# GENUI_STATE_FILE 指向的临时状态快照（regression.mjs 与浏览器回归各用一个）
+tools/test-state.json
+tools/browser-test-state.json
+
+# 无头验证的进度文件与探针产物
+tools/verification-progress.json
+tools/selftest-url.txt
+tools/selftest-dom.html
+
+# 一次性 profile 编码修复记录（repair-profile-encoding.mjs）
+tools/encoding-repair-results.json
+
+# 回归结果摘要：脚本只把 JSON 打到 stdout，下面三个文件是留存的验收证据，
+# 所以先按通配忽略，再显式放行这三个（别把有用的回归基线一起忽略掉）
+tools/*-results.json
+!tools/browser-regression-results.json
+!tools/outer-scroll-results.json
+!tools/sales-browser-results.json
+
+# ── 明确保留，不要加进忽略规则 ──────────────────────────────────────────
+# tools/*.png                          README 与验收记录引用的截图
+# tools/session-*-evidence.json        真实会话原始证据
+# tools/file-read-*.json               真实会话验收证据
+# tools/profile-native-validation.json 宿主配置解析证据
+# vendor/THIRD-PARTY.md                第三方代码来源与再分发要求
+# vendor/LICENSE-intelligent-ui-demo   上游 MIT 许可原文

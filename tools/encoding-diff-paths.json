@@ -1,0 +1,80 @@
+[
+  {
+    "path": "4.config.providers.sunge.models.0.name",
+    "nonASCII": true,
+    "currentLength": 11,
+    "backupLength": 10
+  },
+  {
+    "path": "6.config",
+    "missing": "current"
+  },
+  {
+    "path": "10.insert.0.config.name",
+    "nonASCII": true,
+    "currentLength": 9,
+    "backupLength": 8
+  },
+  {
+    "path": "10.insert.0.config.description",
+    "nonASCII": true,
+    "currentLength": 203,
+    "backupLength": 157
+  },
+  {
+    "path": "10.insert.0.config.plugins.0.config.prefix",
+    "nonASCII": true,
+    "currentLength": 2189,
+    "backupLength": 1429
+  },
+  {
+    "path": "10.insert.0.config.plugins.11.config.0.config.section",
+    "nonASCII": true,
+    "currentLength": 2340,
+    "backupLength": 2340
+  },
+  {
+    "path": "11.insert.0.config.name",
+    "nonASCII": true,
+    "currentLength": 9,
+    "backupLength": 6
+  },
+  {
+    "path": "11.insert.0.config.description",
+    "nonASCII": true,
+    "currentLength": 162,
+    "backupLength": 115
+  },
+  {
+    "path": "11.insert.0.config.plugins.0.config.prefix",
+    "nonASCII": true,
+    "currentLength": 2434,
+    "backupLength": 2378
+  },
+  {
+    "path": "15.insert.0.config.name",
+    "nonASCII": true,
+    "currentLength": 16,
+    "backupLength": 15
+  },
+  {
+    "path": "15.insert.0.config.description",
+    "nonASCII": true,
+    "currentLength": 272,
+    "backupLength": 204
+  },
+  {
+    "path": "15.insert.0.config.plugins.0.config.prefix",
+    "nonASCII": true,
+    "currentLength": 3327,
+    "backupLength": 2331
+  },
+  {
+    "path": "15.insert.0.config.plugins.0.config.suffix",
+    "missing": "current"
+  },
+  {
+    "path": "16",
+    "missing": "current"
+  }
+]

@@ -1,0 +1,27 @@
+# Normalize line endings on checkout/commit; keep binary assets untouched.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.zstd binary
+
+# Generated / vendored-by-copy files keep their upstream bytes.
+vendor/** -text
+tools/edge-regression-profile/** -text
+
+*.dil text
+*.patch.yml text
+*.md text
+*.mjs text
+*.cjs text
+*.js text
+*.json text
+*.html text
+*.css text

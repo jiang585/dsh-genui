@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Intelligent UI</title>
+    <link rel="stylesheet" href="/genui/dil/dil.css" />
+    <style>
+      /* No chrome of its own: the tool card owns the header, so the generated
+         interface gets the whole frame and can never be clipped by a bar. */
+      html, body {
+        margin: 0;
+        background: transparent;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      body {
+        font: 14px/1.55 var(--dil-font, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif);
+        color: var(--dil-text);
+      }
+      .err {
+        display: none;
+        margin: 12px 14px 0;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid color-mix(in srgb, var(--dil-danger, #ef4444) 28%, transparent);
+        background: color-mix(in srgb, var(--dil-danger, #ef4444) 8%, var(--dil-surface, #ffffff));
+        color: var(--dil-danger, #ef4444);
+        box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--dil-danger, #ef4444) 16%, transparent);
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .stage {
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      @media (max-width: 480px) {
+        .stage { padding: 14px; }
+      }
+      /* Modern subtle custom scrollbars for table / horizontal overflow */
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--dil-text, #000) 18%, transparent);
+        border-radius: 999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: color-mix(in srgb, var(--dil-text, #000) 30%, transparent);
+      }
+      ::-webkit-scrollbar-track { background: transparent; }
+    </style>
+  </head>
+  <body class="dil-root">
+    <div class="err" id="err"></div>
+    <div class="stage" id="stage"></div>
+
+    <script>
+      // Classic boot probe: runs before (and independently of) the module half.
+      window.__genuiBoot = { moduleStarted: false, errors: [], warnings: [] }
+      window.addEventListener('error', function (event) {
+        var detail = event.message || (event.target && (event.target.src || event.target.href)) || String(event.error || 'unknown')
+        if (/^ResizeObserver loop (completed with undelivered notifications\.|limit exceeded)$/.test(detail)) {
+          window.__genuiBoot.warnings.push(detail)
+          window.__genuiBoot.warnings = window.__genuiBoot.warnings.slice(-20)
+          console.warn('[layout]', detail)
+          event.preventDefault()
+          return
+        }
+        window.__genuiBoot.errors.push(detail)
+        var box = document.getElementById('err')
+        if (box) { box.style.display = 'block'; box.textContent = '[boot] ' + detail }
+      }, true)
+      window.addEventListener('unhandledrejection', function (event) {
+        var detail = 'rejection: ' + ((event.reason && event.reason.message) || event.reason)
+        window.__genuiBoot.errors.push(detail)
+        var box = document.getElementById('err')
+        if (box) { box.style.display = 'block'; box.textContent = '[boot] ' + detail }
+      })
+      window.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+          if (!window.__genuiBoot.moduleStarted) {
+            var box = document.getElementById('err')
+            if (box) {
+              box.style.display = 'block'
+              box.textContent = '[boot] module half never started' + (window.__genuiBoot.errors.length ? '\n' + window.__genuiBoot.errors.join('\n') : '')
+            }
+          }
+        }, 2500)
+      })
+    </script>
+
+    <script type="module">
+      window.__genuiBoot.moduleStarted = true
+      import { DilMessageView } from '/genui/dil/message-view.js'
+
+      const err = document.getElementById('err')
+      const stage = document.getElementById('stage')
+
+      let view = null
+      let sessionId = null
+      let latest = ''
+      let timer = null
+      let compiledBytes = -1
+      let applying = false
+      let queued = false
+
+      const post = (message) => {
+        try { parent.postMessage({ __genuiFrame: true, ...message }, '*') } catch { /* detached */ }
+      }
+
+      function showError(text) {
+        err.style.display = 'block'
+        err.textContent = text
+        post({ kind: 'error', message: text })
+      }
+
+      function clearError() {
+        err.style.display = 'none'
+        err.textContent = ''
+      }
+
+      function ensureView() {
+        if (view) return view
+        view = new DilMessageView({
+          container: stage,
+          sandboxContainer: document.body,
+          conversationId: 'genui',
+          frameUrl: '/genui/runner.html',
+          stateReportMs: 400,
+          onUpdate: (update) => {
+            if (update.rendered) post({ kind: 'rendered', stats: update.stats })
+            if (update.compiled) post({ kind: 'compiled', stats: { durationMs: update.compiled.durationMs } })
+          },
+          onProtocol: (entry) => post({ kind: 'protocol', entry }),
+          onError: (error, stageName) => showError(`[${stageName}] ${error?.name ? `${error.name}: ` : ''}${error?.message ?? error}`),
+        })
+        view.meta = { message_id: 'genui-frame', conversation_id: sessionId ?? 'genui' }
+        return view
+      }
+
+      /** Boot the sandbox before the first source arrives, so the first paint is
+       *  one compile away instead of compile + iframe boot. */
+      function warm() {
+        try {
+          const target = ensureView()
+          target.sandbox.connect().catch((error) => showError(`[connect] ${error?.message ?? error}`))
+        } catch (error) {
+          showError(`[warm] ${error?.message ?? error}`)
+        }
+      }
+
+      function bindSession(next) {
+        sessionId = next
+        globalThis.__GENUI_SESSION_ID__ = next
+        if (view) view.meta = { message_id: 'genui-frame', conversation_id: next ?? 'genui' }
+      }
+
+      async function applySource(source) {
+        if (!source.trim()) return
+        if (applying) { queued = true; return }
+        applying = true
+        try {
+          clearError()
+          const target = ensureView()
+          const started = performance.now()
+          const result = await target.loadSource(source)
+          if (result.stale) return
+          compiledBytes = source.length
+          post({
+            kind: 'compiled',
+            ok: true,
+            bytes: source.length,
+            durationMs: result.durationMs ?? Math.round(performance.now() - started),
+            diagnostics: result.diagnostics ?? [],
+            diagnosticSummary: result.diagnosticSummary ?? '',
+            requiredComponents: result.requiredComponents ?? [],
+          })
+        } catch (error) {
+          if (String(error?.message).includes('compiler busy')) queued = true
+          else showError(String(error?.message ?? error))
+        } finally {
+          applying = false
+          if (queued) { queued = false; schedule() }
+        }
+      }
+
+      // 60 ms: fast enough that each streamed chunk is on screen almost at once,
+      // slow enough that a burst of tiny deltas collapses into one compile.
+      function schedule() {
+        if (timer) return
+        timer = setTimeout(() => {
+          timer = null
+          applySource(latest)
+        }, 60)
+      }
+
+      window.addEventListener('message', (event) => {
+        if (event.source !== parent || event.origin !== location.origin) return
+        const message = event.data
+        if (!message || message.__genuiHost !== true) return
+        if (message.kind === 'session') { bindSession(message.sessionId ?? null); return }
+        if (message.kind === 'warm') { warm(); return }
+        if (message.kind === 'measure') { post({ kind: 'height', height: Math.ceil(contentHeight()), forced: true }); return }
+        if (message.kind === 'source') {
+          globalThis.__GENUI_CALL_ID__ = message.callId ?? null
+          latest = typeof message.source === 'string' ? message.source : ''
+          post({ kind: 'streaming', bytes: latest.length, compiledBytes })
+          schedule()
+          return
+        }
+        if (message.kind === 'final') {
+          latest = typeof message.source === 'string' ? message.source : latest
+          if (timer) { clearTimeout(timer); timer = null }
+          applySource(latest)
+        }
+      })
+
+      // Debug/self-test entry: /genui/frame.html?source_b64=<base64 DIL>
+      if (parent === window) {
+        const params = new URLSearchParams(location.search)
+        const encoded = params.get('source_b64')
+        const plain = params.get('source')
+        if (encoded) {
+          try {
+            const normalized = encoded.replace(/-/g, '+').replace(/_/g, '/')
+            const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4)
+            const bytes = Uint8Array.from(atob(padded), (c) => c.charCodeAt(0))
+            latest = new TextDecoder().decode(bytes)
+          } catch { /* ignore malformed debug source */ }
+        } else if (plain) {
+          latest = plain
+        }
+        if (latest) {
+          document.title = 'debug:source=' + latest.length
+          schedule()
+        }
+      }
+
+      post({ kind: 'ready' })
+
+      // ── height: report the true content box, from several angles ────────────
+      let lastHeight = 0
+      function contentHeight() {
+        const stageBox = stage.getBoundingClientRect()
+        return Math.max(120, stageBox.bottom + window.scrollY, stage.scrollHeight + stageBox.top + window.scrollY)
+
+      }
+      function measure() {
+        const height = Math.ceil(contentHeight())
+        if (height > 0 && Math.abs(height - lastHeight) > 1) {
+          lastHeight = height
+          post({ kind: 'height', height })
+        }
+      }
+      let measureQueued = false
+      function scheduleMeasure() {
+        if (measureQueued) return
+        measureQueued = true
+        requestAnimationFrame(() => { measureQueued = false; measure() })
+      }
+      const contentObserver = new ResizeObserver(scheduleMeasure)
+      contentObserver.observe(stage)
+      contentObserver.observe(err)
+      new MutationObserver(scheduleMeasure).observe(stage, { childList: true, subtree: true, attributes: true, characterData: true })
+
+      // Heartbeat: even if the host misses a change message, the card converges.
+      setInterval(() => post({ kind: 'height', height: Math.ceil(contentHeight()), heartbeat: true }), 1200)
+      measure()
+    </script>
+  </body>
+</html>
